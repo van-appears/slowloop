@@ -173,9 +173,9 @@ public class SlowLoopApplication {
 		c.gridy = 14;
 		container.add(echo2LevelLabel, c);
 		c.gridy = 15;
-		container.add(new JLabel("Recording Length:"), c);
+		container.add(new JLabel("Recording length:"), c);
 		c.gridy = 16;
-		container.add(new JLabel("File Prefix Length:"), c);
+		container.add(new JLabel("File prefix:"), c);
 	}
 
 	private void layoutControls(Container container, GridBagConstraints c) {
