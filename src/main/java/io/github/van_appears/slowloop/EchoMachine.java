@@ -25,39 +25,63 @@ public class EchoMachine {
 		this.echo1 = echo1;
 		this.echo2 = echo2;
 	}
-	
-	public void start() {
+
+	public void reconnect(LineSettings.LineSetting input, LineSettings.LineSetting output) {
+		if (recordLine != null) {
+			closeInput();
+		}
+		if (playLine != null) {
+			closeOutput();	
+		}
 		try {
-			openInput();
-			openOutput();
-			readFromMicrophone();
-			playThroughSpeakers();
+			openInput(input.getMixer());
+			openOutput(output.getMixer());
 		}
 		catch(Exception e1) {
 			e1.printStackTrace();
 			exit();
 		}
 	}
+
+	public void start() {
+		readFromMicrophone();
+		playThroughSpeakers();
+	}
 	
-	public void exit() { 			
+	private void closeInput() {
 		try {
-			closeInputAndOutput();
-		} catch (Exception e2) {
-			e2.printStackTrace();
+			recordLine.stop();
+			recordLine.close();
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
+	}
+	
+	private void closeOutput() {
+		try {
+			playLine.stop();
+			playLine.close();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void exit() {
+		closeInput();
+		closeOutput();
 		System.exit(1);
 	}
 
-	private void openInput() throws LineUnavailableException {
+	private void openInput(Mixer mixer) throws LineUnavailableException {
 		DataLine.Info recordDataLine = new DataLine.Info(TargetDataLine.class, MONO_16BIT);
-		recordLine = (TargetDataLine)AudioSystem.getLine(recordDataLine);
+		recordLine = (TargetDataLine)mixer.getLine(recordDataLine);
 		recordLine.open(MONO_16BIT);
 		recordLine.start();
 	}
 	
-	private void openOutput() throws LineUnavailableException {
+	private void openOutput(Mixer mixer) throws LineUnavailableException {
 		DataLine.Info playDataLine = new DataLine.Info(SourceDataLine.class, MONO_16BIT);
-		playLine = (SourceDataLine)AudioSystem.getLine(playDataLine);
+		playLine = (SourceDataLine)mixer.getLine(playDataLine);
  		playLine.open(MONO_16BIT);
  		playLine.start();
 	}
@@ -71,11 +95,16 @@ public class EchoMachine {
  			public void run() {
 		        while (!finished) {
 	 		 		byte buffer[] = new byte[BUFFER_LENGTH];
-			        int count = recordLine.read(buffer, 0, buffer.length) / 2;
-			        for (int index=0; index<count; index++) {
-			        	echo1.writeNext(buffer, index*2);
-			        	echo2.writeNext(buffer, index*2);
-			        }
+	 		 		try {
+				        int count = recordLine.read(buffer, 0, buffer.length) / 2;
+				        for (int index=0; index<count; index++) {
+				        	echo1.writeNext(buffer, index*2);
+				        	echo2.writeNext(buffer, index*2);
+				        }
+	 		 		} catch (Exception e) {
+	 		 			System.out.println(e);
+	 		 			// coarse handle for recordLine being changed
+	 		 		}
 		        }
 			}
 		}.start();		
@@ -91,10 +120,14 @@ public class EchoMachine {
 		        		double val2 = echo2.readNext();
 		        		writeDataValue(buffer, index*2, val1 + val2);
 		        	}
-					playLine.write(buffer, 0, buffer.length);
-					if (toWrite != null) {
-			            toWrite.add(buffer);
-					}
+		        	try {
+						playLine.write(buffer, 0, buffer.length);
+						if (toWrite != null) {
+				            toWrite.add(buffer);
+						}
+			        } catch (Exception e) {
+	 		 			// coarse handle for playLine being changed
+	 		 		}
 		        }
 			}
 		}.start();		
@@ -132,15 +165,6 @@ public class EchoMachine {
 	
 	public boolean isRecording() {
 		return currentWriter != null;
-	}
-	
-	private void closeInputAndOutput()
-	throws LineUnavailableException {
-		recordLine.stop();
-		recordLine.close();
-		
- 		playLine.stop();
- 		playLine.close();
 	}
 	
 	public void writeDataValue(byte[] data, int dataReadPos, double value) {		

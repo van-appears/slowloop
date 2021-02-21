@@ -17,6 +17,7 @@ import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -62,8 +63,13 @@ public class SlowLoopApplication {
 	private JLabel echo2LevelLabel = new JLabel();
 	private JSlider echo2Level = new JSlider(0, 100);
 
+	private JComboBox<LineSettings.LineSetting> inputs = new JComboBox<>();
+	private JComboBox<LineSettings.LineSetting> outputs = new JComboBox<>();
+	private JButton refresh = new JButton("Refresh");
+	private JButton restart = new JButton("Restart");
+	
 	private JSpinner recordLength  = new JSpinner(new SpinnerNumberModel
-			(4.0, 0.1, EchoModel.MAX_LENGTH_SECONDS, 0.1));
+			(180.0, 1.0, StreamWriter.MAX_LENGTH_SECONDS, 1.0));
 	private JTextField recordPrefix = new JTextField();
 	private JButton mute = new JButton("Mute");
 	private JCheckBox clearOnRecord = new JCheckBox("Clear on record");
@@ -73,6 +79,7 @@ public class SlowLoopApplication {
 	private EchoModel echo1;
 	private EchoModel echo2;
 	private EchoMachine echoMachine;
+	private LineSettings lineSettings;
 
 	public static void main(String[] args) {
 		new SlowLoopApplication();
@@ -82,6 +89,7 @@ public class SlowLoopApplication {
 		echo1 = new EchoModel();
 		echo2 = new EchoModel();
 		echoMachine = new EchoMachine(echo1, echo2);
+		lineSettings = new LineSettings();
 
 		JFrame frame = new JFrame("Slow loop");
 		buildUI(frame.getContentPane());
@@ -96,6 +104,7 @@ public class SlowLoopApplication {
 		loadDefaultValues();
 		frame.setVisible(true);
 		SwingUtilities.invokeLater(() -> {
+			setInputAndOutput();
 			echoMachine.start();
 		});
 	}
@@ -106,71 +115,101 @@ public class SlowLoopApplication {
         c.fill = GridBagConstraints.HORIZONTAL;
 		c.insets = new Insets(4, 4, 4, 4);
 
+		setInputsAndOutputs();
 		layoutLabels(container, c);
 		layoutControls(container, c);
 		layoutButtons(container, c);
 		layoutSeparators(container, c);
 		connectListeners(container);
 	}
+	
+	private void setInputsAndOutputs() {
+		inputs.removeAllItems();
+		outputs.removeAllItems();
+		for (LineSettings.LineSetting item : lineSettings.getInputs()) {
+			inputs.addItem(item);
+		}
+		for (LineSettings.LineSetting item : lineSettings.getOutputs()) {
+			outputs.addItem(item);
+		}
+		if (inputs.getItemCount() == 0 || outputs.getItemCount() == 0) {
+			// a bit rough...
+			System.exit(1);
+		}
+	}
+	
+	private void setInputAndOutput() {
+		echoMachine.reconnect(
+		    (LineSettings.LineSetting)inputs.getSelectedItem(),
+		    (LineSettings.LineSetting)outputs.getSelectedItem()
+		);
+	}
 
 	private void layoutLabels(Container container, GridBagConstraints c) {
 		c.gridwidth = 1;
-		c.gridy = 0;
 		c.gridx = 0;
-		container.add(new JLabel("Echo 1 length:"), c);
+		c.gridy = 0;
+		container.add(new JLabel("Input:"), c);
 		c.gridy = 1;
-		container.add(echo1SpeedLabel, c);
-		c.gridy = 2;
-		container.add(echo1WetLabel, c);
+		container.add(new JLabel("Output:"), c);
 		c.gridy = 3;
-		container.add(echo1DryLabel, c);
+		container.add(new JLabel("Echo 1 length:"), c);
+		c.gridy = 4;
+		container.add(echo1SpeedLabel, c);
 		c.gridy = 5;
-		container.add(new JLabel("Echo 2 length:"), c);
+		container.add(echo1WetLabel, c);
 		c.gridy = 6;
-		container.add(echo2SpeedLabel, c);
-		c.gridy = 7;
-		container.add(echo2WetLabel, c);
+		container.add(echo1DryLabel, c);
 		c.gridy = 8;
-		container.add(echo2DryLabel, c);
+		container.add(new JLabel("Echo 2 length:"), c);
+		c.gridy = 9;
+		container.add(echo2SpeedLabel, c);
 		c.gridy = 10;
-		container.add(echo1LevelLabel, c);
+		container.add(echo2WetLabel, c);
 		c.gridy = 11;
-		container.add(echo2LevelLabel, c);
-		c.gridy = 12;
-		container.add(new JLabel("Recording Length:"), c);
+		container.add(echo2DryLabel, c);
 		c.gridy = 13;
+		container.add(echo1LevelLabel, c);
+		c.gridy = 14;
+		container.add(echo2LevelLabel, c);
+		c.gridy = 15;
+		container.add(new JLabel("Recording Length:"), c);
+		c.gridy = 16;
 		container.add(new JLabel("File Prefix Length:"), c);
 	}
 
 	private void layoutControls(Container container, GridBagConstraints c) {
-		c.gridwidth = 1;
-		c.ipadx = 50;
 		c.gridx = 1;
+		c.gridwidth = 1;
 		c.gridy = 0;
+		container.add(inputs, c);
+		c.gridy = 1;
+		container.add(outputs, c);
+		c.gridy = 3;
 		container.add(echo1Length, c);
-		c.gridy = 5;
+		c.gridy = 8;
 		container.add(echo2Length, c);
-		c.gridy = 12;
+		c.gridy = 15;
 		container.add(recordLength, c);
 		c.gridwidth = 2;
 		c.ipadx = 100;
-		c.gridy = 1;
+		c.gridy = 4;
 		container.add(echo1Speed, c);
-		c.gridy = 2;
+		c.gridy = 5;
 		container.add(echo1Wet, c);
-		c.gridy = 3;
-		container.add(echo1Dry, c);
 		c.gridy = 6;
+		container.add(echo1Dry, c);
+		c.gridy = 9;
 		container.add(echo2Speed, c);
-		c.gridy = 7;
-		container.add(echo2Wet, c);
-		c.gridy = 8;
-		container.add(echo2Dry, c);
 		c.gridy = 10;
-		container.add(echo1Level, c);
+		container.add(echo2Wet, c);
 		c.gridy = 11;
-		container.add(echo2Level, c);
+		container.add(echo2Dry, c);
 		c.gridy = 13;
+		container.add(echo1Level, c);
+		c.gridy = 14;
+		container.add(echo2Level, c);
+		c.gridy = 16;
 		container.add(recordPrefix, c);
 		c.ipadx = 0;
 	}
@@ -179,41 +218,49 @@ public class SlowLoopApplication {
 		c.gridwidth = 1;
 		c.gridx = 3;
 		c.gridy = 0;
-		container.add(echo1Clear, c);
+		container.add(refresh, c);
 		c.gridy = 1;
-		container.add(echo1Reverse, c);
-		c.gridy = 2;
-		container.add(echo1WetDryLink, c);
+		container.add(restart, c);
 		c.gridy = 3;
-		container.add(echo1WetDryInvert, c);
+		container.add(echo1Clear, c);
+		c.gridy = 4;
+		container.add(echo1Reverse, c);
 		c.gridy = 5;
-		container.add(echo2Clear, c);
+		container.add(echo1WetDryLink, c);
 		c.gridy = 6;
-		container.add(echo2Reverse, c);
-		c.gridy = 7;
-		container.add(echo2WetDryLink, c);
+		container.add(echo1WetDryInvert, c);
 		c.gridy = 8;
-		container.add(echo2WetDryInvert, c);
+		container.add(echo2Clear, c);
+		c.gridy = 9;
+		container.add(echo2Reverse, c);
 		c.gridy = 10;
-		container.add(mute, c);
+		container.add(echo2WetDryLink, c);
 		c.gridy = 11;
-		container.add(clearOnRecord, c);
-		c.gridy = 12;
-		container.add(record, c);
+		container.add(echo2WetDryInvert, c);
 		c.gridy = 13;
+		container.add(mute, c);
+		c.gridy = 14;
+		container.add(clearOnRecord, c);
+		c.gridy = 15;
+		container.add(record, c);
+		c.gridy = 16;
 		container.add(load, c);
 	}
 
 	private void layoutSeparators(Container container, GridBagConstraints c) {
 		c.gridwidth = 4;
-		c.gridy = 4;
 		c.gridx = 0;
+		c.gridy = 2;
 		container.add(new JSeparator(), c);
-		c.gridy = 9;
+		c.gridy = 7;
+		container.add(new JSeparator(), c);
+		c.gridy = 12;
 		container.add(new JSeparator(), c);
 	}
 
 	private void connectListeners(Container container) {
+		refresh.addActionListener(a -> setInputsAndOutputs());
+		restart.addActionListener(a -> setInputAndOutput());
 		echo1Clear.addActionListener(a -> echo1.clear());
 		echo2Clear.addActionListener(a -> echo2.clear());
 		echo1Reverse.addActionListener(a -> echo1.setReverse(echo1Reverse.isSelected()));

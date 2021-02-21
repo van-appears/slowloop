@@ -6,6 +6,8 @@ import javax.sound.sampled.AudioInputStream;
 
 public class StreamWriter extends AudioInputStream {
 
+	public static final double MAX_LENGTH_SECONDS = 600.0;
+	
 	private long remainingFrames;
 	private Queue<byte[]> queue;
 	private byte[] current;
