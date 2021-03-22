@@ -12,11 +12,20 @@
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		<commons-math.version>3.6.1</commons-math.version>
 	</properties>
 	
 	<scm>
 		<url>https://github.com/van-appears/slowloop</url>
 	</scm>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
+			<version>${commons-math.version}</version>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<pluginManagement>
@@ -28,7 +37,7 @@
 						<archive>
 							<manifest>
 	                			<mainClass>
-                    				io.github.van_appears.slowloop.SlowLoopApplication
+                    				io.github.van_appears.slowloop.SlowLoop
                 				</mainClass>
             				</manifest>
         				</archive>

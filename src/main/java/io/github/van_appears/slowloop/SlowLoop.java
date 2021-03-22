@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -29,8 +31,9 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-public class SlowLoopApplication {
-	private static final DecimalFormat FORMAT = new DecimalFormat("0.00");
+public class SlowLoop {
+	private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("0.00");
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd-hhmmss");
 	private static final String DEFAULT_PROPERTIES_PREFIX = "slowloop";
 	
 	private JSpinner echo1Length = new JSpinner(new SpinnerNumberModel
@@ -82,10 +85,10 @@ public class SlowLoopApplication {
 	private LineSettings lineSettings;
 
 	public static void main(String[] args) {
-		new SlowLoopApplication();
+		new SlowLoop();
 	}
 
-	private SlowLoopApplication() {
+	private SlowLoop() {
 		echo1 = new EchoModel();
 		echo2 = new EchoModel();
 		echoMachine = new EchoMachine(echo1, echo2);
@@ -298,7 +301,7 @@ public class SlowLoopApplication {
 			double val = 0.01 * (double)slider.getValue();
 			double converted = min + ((max - min) * val);
 			processor.accept(converted);
-			label.setText(labelText + " " + FORMAT.format(converted));
+			label.setText(labelText + " " + NUMBER_FORMAT.format(converted));
 		});
 		slider.setValue(0);
 		slider.setValue(initialPosition);
@@ -370,7 +373,7 @@ public class SlowLoopApplication {
 				
 				String outFile = recordPrefix.getText().trim();
 				if (!outFile.isEmpty()) { outFile += "-"; }
-				outFile += System.currentTimeMillis();
+				outFile += DATE_FORMAT.format(new Date());
 				
 				if (clearOnRecord.isSelected()) {
 					echo1.clear();
