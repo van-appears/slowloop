@@ -10,49 +10,25 @@ In a given loop there are two cursors, the point where the next frame of data is
 
 For example, if the (R)ead point is moving at half speed of the (W)rite point, and there were only four frames of data, you could consider the cursors to move like this:
 
-``
+`
 
-    (1)   W---
-          1234
-          R---
+              W---           -W--           --W-           ---W
+         (1)  1234  ->  (2)  1234  ->  (3)  1234  ->  (4)  1234  -.
+              R---           R---           -R--           -R--   |
+                                                                  |
+    .-------------------------------------------------------------'
+    |
+    |         W---           -W--           --W-           ---W
+    '->  (5)  1234  ->  (6)  1234  ->  (7)  1234  ->  (8)  1234  -.
+              --R-           --R-           ---R           ---R   |
+                                                                  |
+    .-------------------------------------------------------------'
+    |
+    |         W---           -W--           --W-
+    '->  (9)  1234  ->  (10) 1234  ->  (11) 1234  ->  etc. 
+              R---           R---           -R--
 
-    (2)   -W--
-          1234
-          R---
-
-    (3)   --W-
-          1234
-          -R--
-
-    (4)   ---W
-          1234
-          -R--
-
-    (5)   W---
-          1234
-          --R-
-
-    (6)   -W--
-          1234
-          --R-
-
-    (7)   --W-
-          1234
-          ---R
-
-    (8)   ---W
-          1234
-          ---R
-
-    (9)   W---
-          1234
-          R---
-
-    etc.
-``
-
-
-
+`
 
 ## recording
 
