@@ -17,12 +17,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
@@ -31,9 +33,11 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import io.github.van_appears.slowloop.EchoMachine.RecordType;
+
 public class SlowLoop {
 	private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("0.00");
-	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd-hhmmss");
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd-HHmmss");
 	private static final String DEFAULT_PROPERTIES_PREFIX = "slowloop";
 	
 	private JSpinner echo1Length = new JSpinner(new SpinnerNumberModel
@@ -71,10 +75,12 @@ public class SlowLoop {
 	private JButton refresh = new JButton("Refresh");
 	private JButton restart = new JButton("Restart");
 	
-	private JSpinner recordLength  = new JSpinner(new SpinnerNumberModel
+	private JRadioButton useOutput = new JRadioButton("Record output");
+	private JRadioButton useInput = new JRadioButton("Record input");
+	private JSpinner recordLength = new JSpinner(new SpinnerNumberModel
 			(180.0, 1.0, StreamWriter.MAX_LENGTH_SECONDS, 1.0));
 	private JTextField recordPrefix = new JTextField();
-	private JButton mute = new JButton("Mute");
+	private JButton mute = new JButton("Mute both");
 	private JCheckBox clearOnRecord = new JCheckBox("Clear on record");
 	private JButton record = new JButton("Record");
 	private JButton load = new JButton("Load properties");
@@ -115,8 +121,8 @@ public class SlowLoop {
 	private void buildUI(Container container) {
 		container.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.HORIZONTAL;
-		c.insets = new Insets(4, 4, 4, 4);
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.insets = new Insets(2, 4, 2, 4);
 
 		setInputsAndOutputs();
 		layoutLabels(container, c);
@@ -143,8 +149,8 @@ public class SlowLoop {
 	
 	private void setInputAndOutput() {
 		echoMachine.reconnect(
-		    (LineSettings.LineSetting)inputs.getSelectedItem(),
-		    (LineSettings.LineSetting)outputs.getSelectedItem()
+			(LineSettings.LineSetting)inputs.getSelectedItem(),
+			(LineSettings.LineSetting)outputs.getSelectedItem()
 		);
 	}
 
@@ -175,9 +181,9 @@ public class SlowLoop {
 		container.add(echo1LevelLabel, c);
 		c.gridy = 14;
 		container.add(echo2LevelLabel, c);
-		c.gridy = 15;
+		c.gridy = 17;
 		container.add(new JLabel("Recording length:"), c);
-		c.gridy = 16;
+		c.gridy = 18;
 		container.add(new JLabel("File prefix:"), c);
 	}
 
@@ -192,7 +198,7 @@ public class SlowLoop {
 		container.add(echo1Length, c);
 		c.gridy = 8;
 		container.add(echo2Length, c);
-		c.gridy = 15;
+		c.gridy = 17;
 		container.add(recordLength, c);
 		c.gridwidth = 2;
 		c.ipadx = 100;
@@ -212,7 +218,7 @@ public class SlowLoop {
 		container.add(echo1Level, c);
 		c.gridy = 14;
 		container.add(echo2Level, c);
-		c.gridy = 16;
+		c.gridy = 18;
 		container.add(recordPrefix, c);
 		c.ipadx = 0;
 	}
@@ -242,12 +248,18 @@ public class SlowLoop {
 		container.add(echo2WetDryInvert, c);
 		c.gridy = 13;
 		container.add(mute, c);
-		c.gridy = 14;
-		container.add(clearOnRecord, c);
-		c.gridy = 15;
-		container.add(record, c);
 		c.gridy = 16;
+		container.add(clearOnRecord, c);
+		c.gridy = 17;
+		container.add(record, c);
+		c.gridy = 18;
 		container.add(load, c);
+		c.gridy = 16;
+		c.gridx = 0;
+		container.add(useOutput, c);
+		c.gridx = 1;
+		container.add(useInput, c);
+		
 	}
 
 	private void layoutSeparators(Container container, GridBagConstraints c) {
@@ -258,6 +270,8 @@ public class SlowLoop {
 		c.gridy = 7;
 		container.add(new JSeparator(), c);
 		c.gridy = 12;
+		container.add(new JSeparator(), c);
+		c.gridy = 15;
 		container.add(new JSeparator(), c);
 	}
 
@@ -272,8 +286,8 @@ public class SlowLoop {
 		connectLengthControl(echo2Length, i -> echo2.setFrameLength(i));
 		connectSliderToLabel(echo1Speed, echo1SpeedLabel, "Speed:", 55, 1.0, 0.1, d -> echo1.setSpeed(d));
 		connectSliderToLabel(echo2Speed, echo2SpeedLabel, "Speed:", 55, 1.0, 0.1, d -> echo2.setSpeed(d));
-		connectSliderToLabel(echo1Level, echo1LevelLabel, "Level 1:", 80, 0.0, 1.25, d -> echo1.setPlayLevel(d));
-		connectSliderToLabel(echo2Level, echo2LevelLabel, "Level 2:", 0, 0.0, 1.25, d -> echo2.setPlayLevel(d));
+		connectSliderToLabel(echo1Level, echo1LevelLabel, "Level 1:", 67, 0.0, 1.495, d -> echo1.setPlayLevel(d));
+		connectSliderToLabel(echo2Level, echo2LevelLabel, "Level 2:", 0, 0.0, 1.495, d -> echo2.setPlayLevel(d));
 		connectSliderToLabel(echo1Wet, echo1WetLabel, "Wet mix:", 75, 0.0, 1.0, d -> echo1.setWetMix(d));
 		connectSliderToLabel(echo2Wet, echo2WetLabel, "Wet mix:", 75, 0.0, 1.0, d -> echo2.setWetMix(d));
 		connectSliderToLabel(echo1Dry, echo1DryLabel, "Dry mix:", 25, 0.0, 1.0, d -> echo1.setDryMix(d));
@@ -282,6 +296,13 @@ public class SlowLoop {
 		connectLinkedWetDry(echo2Wet, echo2Dry, echo2WetDryLink);
 		connectInvertWetDry(echo1Wet, echo1Dry, echo1WetDryInvert);
 		connectInvertWetDry(echo2Wet, echo2Dry, echo2WetDryInvert);
+		
+		ButtonGroup group = new ButtonGroup();
+		group.add(useOutput);
+		group.add(useInput);
+		useOutput.setSelected(true);
+		useOutput.addActionListener(a -> echoMachine.setRecordType(RecordType.Output));
+		useInput.addActionListener(a -> echoMachine.setRecordType(RecordType.Input));
 
 		connectMuteControl();
 		connectRecordControls();
@@ -291,11 +312,11 @@ public class SlowLoop {
 	private void connectSliderToLabel(
 			JSlider slider,
 			JLabel label,
-		    String labelText,
-		    int initialPosition,
-		    double min,
-		    double max,
-		    Consumer<Double> processor
+			String labelText,
+			int initialPosition,
+			double min,
+			double max,
+			Consumer<Double> processor
 	) {
 		slider.addChangeListener(l -> {
 			double val = 0.01 * (double)slider.getValue();
@@ -344,7 +365,7 @@ public class SlowLoop {
 		mute.addActionListener(l -> {
 			boolean currentlyMuted = isMuted.get();
 			if (currentlyMuted) {
-				mute.setText("Mute");
+				mute.setText("Mute both");
 				echo1Level.setValue(level1Value.get());
 				echo2Level.setValue(level2Value.get());
 			} else {
@@ -395,13 +416,13 @@ public class SlowLoop {
 	private void connectLoadControl(Container container) {
 		load.addActionListener(a -> {
 			JFileChooser chooser = new JFileChooser();
-		    FileNameExtensionFilter filter = new FileNameExtensionFilter(
-		        "Properties files", "properties");
-		    chooser.setFileFilter(filter);
-		    int returnVal = chooser.showOpenDialog(container);
-		    if(returnVal == JFileChooser.APPROVE_OPTION) {
-		    	loadValues(chooser.getSelectedFile());
-		    }
+			FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				"Properties files", "properties");
+			chooser.setFileFilter(filter);
+			int returnVal = chooser.showOpenDialog(container);
+			if(returnVal == JFileChooser.APPROVE_OPTION) {
+				loadValues(chooser.getSelectedFile());
+			}
 		});
 	}
 
@@ -436,6 +457,7 @@ public class SlowLoop {
 		properties.setProperty("clearOnRecord", String.valueOf(clearOnRecord.isSelected()));
 		properties.setProperty("recordLength", String.valueOf(recordLength.getValue()));
 		properties.setProperty("recordPrefix", recordPrefix.getText());
+		properties.setProperty("useInput", String.valueOf(useInput.isSelected()));
 		properties.store(new FileOutputStream(file), "");
 	}
 	
@@ -472,5 +494,10 @@ public class SlowLoop {
 		clearOnRecord.setSelected(Boolean.parseBoolean(properties.getProperty("clearOnRecord")));
 		recordLength.setValue(Double.parseDouble(properties.getProperty("recordLength")));
 		recordPrefix.setText(properties.getProperty("recordPrefix"));
+		if (Boolean.parseBoolean("useInput")) {
+			useInput.setSelected(true);
+		} else {
+			useOutput.setSelected(true);
+		}
 	}
 }

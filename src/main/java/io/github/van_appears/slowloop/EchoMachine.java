@@ -8,6 +8,7 @@ import javax.sound.sampled.*;
 
 public class EchoMachine {
 	
+	public enum RecordType { Input, Output };
 	public static final int BUFFER_LENGTH = 4410;
 	public static final AudioFormat MONO_16BIT = new AudioFormat
 		(AudioFormat.Encoding.PCM_SIGNED, EchoModel.SAMPLE_RATE, 16, 1, 2, EchoModel.SAMPLE_RATE, false);
@@ -16,6 +17,7 @@ public class EchoMachine {
 	private SourceDataLine playLine = null;
 	private Queue<byte[]> toWrite = null;
 	private boolean finished = false;
+	private RecordType recordType = RecordType.Output;
 	private StreamWriter currentWriter = null;
 	private CompletionListener completionListener;	
 	private EchoModel echo1;
@@ -47,7 +49,7 @@ public class EchoMachine {
 		readFromMicrophone();
 		playThroughSpeakers();
 	}
-	
+
 	private void closeInput() {
 		try {
 			recordLine.stop();
@@ -56,7 +58,7 @@ public class EchoMachine {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void closeOutput() {
 		try {
 			playLine.stop();
@@ -90,21 +92,28 @@ public class EchoMachine {
 		this.completionListener = listener;
 	}
 	
+	public void setRecordType(RecordType recordType) {
+		this.recordType = recordType;
+	}
+	
 	private void readFromMicrophone() {
  		new Thread() {
- 			public void run() {
-		        while (!finished) {
+			public void run() {
+				while (!finished) {
 	 		 		byte buffer[] = new byte[BUFFER_LENGTH];
 	 		 		try {
-				        int count = recordLine.read(buffer, 0, buffer.length) / 2;
-				        for (int index=0; index<count; index++) {
-				        	echo1.writeNext(buffer, index*2);
-				        	echo2.writeNext(buffer, index*2);
-				        }
+	 		 			int count = recordLine.read(buffer, 0, buffer.length) / 2;
+	 		 			for (int index=0; index<count; index++) {
+	 		 				echo1.writeNext(buffer, index*2);
+	 		 				echo2.writeNext(buffer, index*2);
+	 		 			}
 	 		 		} catch (Exception e) {
 	 		 			System.out.println(e);
 	 		 			// coarse handle for recordLine being changed
 	 		 		}
+	 		 		if (toWrite != null && recordType == RecordType.Input) {
+	 		 			toWrite.add(buffer);
+					}
 		        }
 			}
 		}.start();		
@@ -122,7 +131,7 @@ public class EchoMachine {
 		        	}
 		        	try {
 						playLine.write(buffer, 0, buffer.length);
-						if (toWrite != null) {
+						if (toWrite != null && recordType == RecordType.Output) {
 				            toWrite.add(buffer);
 						}
 			        } catch (Exception e) {
