@@ -79,6 +79,7 @@ public class SlowLoop {
 	private JRadioButton useInput = new JRadioButton("Record input");
 	private JSpinner recordLength = new JSpinner(new SpinnerNumberModel
 			(180.0, 1.0, StreamWriter.MAX_LENGTH_SECONDS, 1.0));
+	private JLabel timerLabel = new JLabel("0");
 	private JTextField recordPrefix = new JTextField();
 	private JButton mute = new JButton("Mute both");
 	private JCheckBox clearOnRecord = new JCheckBox("Clear on record");
@@ -89,6 +90,7 @@ public class SlowLoop {
 	private EchoModel echo2;
 	private EchoMachine echoMachine;
 	private LineSettings lineSettings;
+	private TimerThread timerThread;
 
 	public static void main(String[] args) {
 		new SlowLoop();
@@ -185,6 +187,9 @@ public class SlowLoop {
 		container.add(new JLabel("Recording length:"), c);
 		c.gridy = 18;
 		container.add(new JLabel("File prefix:"), c);
+		c.gridy = 17;
+		c.gridx = 2;
+		container.add(timerLabel, c);
 	}
 
 	private void layoutControls(Container container, GridBagConstraints c) {
@@ -258,8 +263,7 @@ public class SlowLoop {
 		c.gridx = 0;
 		container.add(useOutput, c);
 		c.gridx = 1;
-		container.add(useInput, c);
-		
+		container.add(useInput, c);	
 	}
 
 	private void layoutSeparators(Container container, GridBagConstraints c) {
@@ -390,6 +394,10 @@ public class SlowLoop {
 				record.setText("Cancel");
 				recordLength.setEnabled(false);
 				recordPrefix.setEnabled(false);
+				inputs.setEnabled(false);
+				outputs.setEnabled(false);
+				refresh.setEnabled(false);
+				restart.setEnabled(false);
 				load.setEnabled(false);
 				
 				String outFile = recordPrefix.getText().trim();
@@ -401,14 +409,20 @@ public class SlowLoop {
 					echo2.clear();
 				}
 				echoMachine.startRecording((double)recordLength.getValue(), outFile);
+				timerThread = new TimerThread();
 				saveValues(new File(outFile + ".properties"));
 			}
 		});
 		echoMachine.setCompletionListener(() -> {
 			System.out.println("Completed");
+			timerThread.stopTimer();
 			record.setText("Start");
 			recordLength.setEnabled(true);
 			recordPrefix.setEnabled(true);
+			inputs.setEnabled(true);
+			outputs.setEnabled(true);
+			refresh.setEnabled(true);
+			restart.setEnabled(true);
 			load.setEnabled(true);
 		});
 	}
@@ -498,6 +512,28 @@ public class SlowLoop {
 			useInput.setSelected(true);
 		} else {
 			useOutput.setSelected(true);
+		}
+	}
+	
+	private class TimerThread extends Thread {
+		boolean running = true;
+		int timer = 0;
+
+		public TimerThread() {
+			timerLabel.setText("0");
+			start();
+		}
+		public void stopTimer() {
+			running = false;
+		}
+		public void run() {
+			while(running) {
+				try {
+					sleep(1000);
+					timer++;
+					timerLabel.setText(String.valueOf(timer));
+				} catch (Exception e) {}
+			}
 		}
 	}
 }
