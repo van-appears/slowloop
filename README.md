@@ -75,4 +75,4 @@ _Recording section_
 * Switching between `Record output` and `Record input` makes no difference to what you _hear_ playing through the application, only what it records to file.
 * The only fields that can't be altered while recording are `File prefix`, `Recording length` and the inbuilt and output devices.
 * If you want to, and are very very patient, you can use something like Audacity to find discontinuities from the Read/Write point overlap in the audio and Repair them.
-* This is just a stupid _thing_ for playing with, not a commercial application. There might be bugs and I may or may not get round to fixing them. Use it as you wish.
+* This is just a stupid _thing_ for playing with, not a commercial application. There might be bugs and I may or may not get round to fixing them. Use it as you wish. See also the information in the license: https://github.com/van-appears/slowloop/blob/main/LICENSE
