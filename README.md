@@ -4,6 +4,11 @@ Can you recreate 'I Am Sitting In A Room' by Alvin Lucier using the inbuilt micr
 No, not really, the quality of those devices leads to terrible screech as the higher frequencies survive each iteration.
 This _thing_ attempts to get round that problem by slowing the playback of what has been recorded, to reduce the higher frequencies. 
 
+## running
+
+This application needs Java 8 installed (at least - though I haven't tried running it against later java versions).
+The https://github.com/van-appears/slowloop/tree/main/dist folder contains the latest version, bundled as an executable jar. Downloading and running that jar should cause the application to start.
+
 ## how it works
 
 The application has two loops which it writes to and reads from simultaneously. In a given loop there are two cursors, the point where the next frame of data is being written, and the point which is used for playback. These cursors move at different speed - where the read point moves slower according to the setting
