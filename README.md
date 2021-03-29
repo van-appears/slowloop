@@ -73,6 +73,6 @@ _Recording section_
 * Remember, the Write moves at 'normal' audio speed, it is only the Read that moves slower. If you want to have a very slow play speed for a loop, you may need to disable the `Wet/dry link` and set the `Dry mix` to a higher value so that the loop retains data for longer.
 * If you decrease or increase the length of a current loop, it just truncates the data or adds empty space as necessary.
 * Switching between `Record output` and `Record input` makes no difference to what you _hear_ playing through the application, only what it records to file.
-* The only fields that can't be altered while recording are `File prefix`, `Recording length` and the inbuilt and output devices.
+* The only fields that can't be altered while recording are `File prefix`, `Recording length` and the input and output devices.
 * If you want to, and are very very patient, you can use something like Audacity to find discontinuities from the Read/Write point overlap in the audio and Repair them.
 * This is just a stupid _thing_ for playing with, not a commercial application. There might be bugs and I may or may not get round to fixing them. Use it as you wish. See also the information in the license: https://github.com/van-appears/slowloop/blob/main/LICENSE
